@@ -1,0 +1,97 @@
+schemaVersion: 2.2.0
+metadata:
+  name: mammoth-backend
+  version: 1.0.0
+  description: Java EE 8 mammoth backend API with PostgreSQL backend
+attributes:
+  .vscode/settings.json: |
+    {
+      "java.server.launchMode": "Standard",
+      "java.configuration.updateBuildConfiguration": "automatic",
+      "mta-core.genai.agentMode": true
+    }
+components:
+  - name: tools
+    container:
+      image: registry.redhat.io/devspaces/udi-rhel9:latest
+      memoryLimit: 6Gi
+      memoryRequest: 2Gi
+      cpuLimit: '4'
+      cpuRequest: '1'
+      mountSources: true
+      volumeMounts:
+        - name: m2
+          path: /home/user/.m2
+      env:
+        - name: JAVA_HOME
+          value: /usr/lib/jvm/java-17-openjdk
+        - name: JAVA_TOOL_OPTIONS
+          value: '-Djavax.net.ssl.trustStore=${JAVA_HOME}/lib/security/cacerts -Djavax.net.ssl.trustStorePassword=changeit -Dhttp.client.HttpClientUtil.VALIDATE_AFTER_INACTIVITY=false'
+        - name: MAVEN_OPTS
+          value: '-Dhttp.client.HttpClientUtil.VALIDATE_AFTER_INACTIVITY=false'
+        - name: DEFAULT_EXTENSIONS
+          value: /tmp/extensions/redhat.mta-vscode-extension.vsix
+        - name: FORCE_HUB_ENABLED
+          value: 'true'
+        - name: HUB_URL
+          value: 'http://mta-ui.openshift-mta.svc.cluster.local:8080'
+        - name: HUB_PROFILE_SYNC_ENABLED
+          value: 'true'
+        - name: HUB_SOLUTION_SERVER_ENABLED
+          value: 'true'
+
+  - name: eap
+    container:
+      image: registry.redhat.io/jboss-eap-8/eap81-openjdk21-builder-openshift-rhel9:latest
+      memoryLimit: 3Gi
+      memoryRequest: 1Gi
+      cpuLimit: '2'
+      cpuRequest: '1'
+      mountSources: true
+      sourceMapping: /projects
+      command: ['tail']
+      args: ['-f', '/dev/null']
+      endpoints:
+        - name: eap-http
+          targetPort: 8180
+          exposure: public
+          protocol: http
+        - name: eap-admin
+          targetPort: 10090
+          exposure: internal
+      env:
+        - name: MAMMOTH_API_URL
+          value: http://localhost:8180/backend/api/mammoths
+        - name: JBOSS_NODE_NAME
+          value: mammoth2
+
+  - name: postgresql
+    container:
+      image: registry.redhat.io/rhel9/postgresql-15:latest
+      memoryLimit: 512Mi
+      memoryRequest: 256Mi
+      cpuLimit: 500m
+      cpuRequest: 100m
+      mountSources: true
+      volumeMounts:
+        - name: postgresql-data
+          path: /var/lib/pgsql/data
+      endpoints:
+        - name: postgresql
+          targetPort: 5432
+          exposure: internal
+      env:
+        - name: POSTGRESQL_USER
+          value: mammoth
+        - name: POSTGRESQL_PASSWORD
+          value: mammoth
+        - name: POSTGRESQL_DATABASE
+          value: mammothdb
+
+  - name: postgresql-data
+    volume:
+      size: 1Gi
+
+  - name: m2
+    volume:
+      size: 2Gi
