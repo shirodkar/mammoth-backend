@@ -95,3 +95,26 @@ components:
   - name: m2
     volume:
       size: 2Gi
+
+commands:
+  - id: setup-ide
+    exec:
+      component: tools
+      commandLine: >-
+        mkdir -p /tmp/extensions &&
+        curl -sL -o /tmp/extensions/redhat.mta-vscode-extension.vsix.gz
+        https://open-vsx.org/api/redhat/mta-vscode-extension/8.2.0/file/redhat.mta-vscode-extension-8.2.0.vsix &&
+        gunzip -f /tmp/extensions/redhat.mta-vscode-extension.vsix.gz 2>/dev/null;
+        mkdir -p /checode/remote/data/User/globalStorage/redhat.mta-core/settings &&
+        cp ${PROJECT_SOURCE}/.vscode/mta-core/settings/provider-settings.yaml
+        /checode/remote/data/User/globalStorage/redhat.mta-core/settings/provider-settings.yaml;
+        mkdir -p /checode/remote/data/Machine &&
+        echo '{"java.server.launchMode":"Standard","java.configuration.updateBuildConfiguration":"automatic","mta-core.genai.agentMode":true}' > /checode/remote/data/Machine/settings.json;
+        mkdir -p /checode/remote/data/User/globalStorage/ms-vscode/CodeTrust &&
+        echo '["/projects"]' > /checode/remote/data/User/globalStorage/ms-vscode/CodeTrust/trustedFolders.json;
+        true
+      label: 'Set up IDE'
+
+events:
+  postStart:
+    - setup-ide
