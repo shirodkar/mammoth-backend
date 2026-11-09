@@ -115,21 +115,7 @@ commands:
         true
       label: 'Set up IDE'
 
-  - id: init-db
-    exec:
-      component: postgresql
-      commandLine: >-
-        for i in $(seq 1 30); do
-        pg_isready -U mammoth -d mammothdb -q && break;
-        echo "Waiting for PostgreSQL to be ready... ($i/30)";
-        sleep 2;
-        done &&
-        psql -U mammoth -d mammothdb -f ${PROJECT_SOURCE}/init-db.sql
-      workingDir: ${PROJECT_SOURCE}
-      label: 'Initialize database'
-
 events:
   postStart:
     - setup-ide
-    - init-db
 
