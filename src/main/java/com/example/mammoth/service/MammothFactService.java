@@ -2,16 +2,17 @@ package com.example.mammoth.service;
 
 import com.example.mammoth.model.MammothFact;
 
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+
 import java.util.List;
 
-@Stateless
+@ApplicationScoped
 public class MammothFactService {
 
-    @PersistenceContext(unitName = "MammothPU")
-    private EntityManager em;
+    @Inject
+    EntityManager em;
 
     public List<MammothFact> findAll() {
         return em.createNamedQuery("MammothFact.findAll", MammothFact.class).getResultList();

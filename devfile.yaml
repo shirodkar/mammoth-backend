@@ -61,7 +61,7 @@ components:
           exposure: internal
       env:
         - name: MAMMOTH_API_URL
-          value: http://localhost:8180/backend/api/mammoths
+          value: http://mammoth-backend-eap:8180/backend/api/mammoths
         - name: JBOSS_NODE_NAME
           value: mammoth2
 
@@ -95,6 +95,29 @@ components:
   - name: m2
     volume:
       size: 2Gi
+
+services:
+  - name: mammoth-backend-postgresql
+    endpoints:
+      - name: postgresql
+        component: postgresql
+        endpoint: postgresql
+    ports:
+      - name: postgresql
+        containerPort: 5432
+    exposeAs:
+      internal: true
+
+  - name: mammoth-backend-eap
+    endpoints:
+      - name: eap-http
+        component: eap
+        endpoint: eap-http
+    ports:
+      - name: eap-http
+        containerPort: 8180
+    exposeAs:
+      public: true
 
 commands:
   - id: setup-ide
@@ -132,3 +155,4 @@ events:
   postStart:
     - setup-ide
     - init-db
+
