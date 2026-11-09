@@ -1,56 +1,33 @@
 package com.example.mammoth.integration;
 
 import com.example.mammoth.model.MammothFact;
+import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.*;
 
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
-import jakarta.persistence.Persistence;
+import jakarta.transaction.Transactional;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@QuarkusTest
+@Transactional
 class MammothFactIT {
 
-    private static EntityManagerFactory emf;
-    private EntityManager em;
-
-    @BeforeAll
-    static void setUpFactory() {
-        emf = Persistence.createEntityManagerFactory("MammothPU");
-    }
-
-    @AfterAll
-    static void tearDownFactory() {
-        if (emf != null) {
-            emf.close();
-        }
-    }
+    @Inject
+    EntityManager em;
 
     @BeforeEach
     void setUp() {
-        em = emf.createEntityManager();
-        em.getTransaction().begin();
         em.createQuery("DELETE FROM MammothFact").executeUpdate();
-        em.getTransaction().commit();
-    }
-
-    @AfterEach
-    void tearDown() {
-        if (em != null && em.isOpen()) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-            em.close();
-        }
     }
 
     private MammothFact insertFact(String category, String title, String description) {
-        em.getTransaction().begin();
         MammothFact fact = new MammothFact(category, title, description);
         em.persist(fact);
-        em.getTransaction().commit();
+        em.flush();
         return fact;
     }
 
@@ -163,7 +140,6 @@ class MammothFactIT {
     @Test
     void testEntityFieldConstraints_categoryNotNull() {
         assertThrows(PersistenceException.class, () -> {
-            em.getTransaction().begin();
             MammothFact fact = new MammothFact(null, "Title", "Description");
             em.persist(fact);
             em.flush();
@@ -173,7 +149,6 @@ class MammothFactIT {
     @Test
     void testEntityFieldConstraints_titleNotNull() {
         assertThrows(PersistenceException.class, () -> {
-            em.getTransaction().begin();
             MammothFact fact = new MammothFact("Category", null, "Description");
             em.persist(fact);
             em.flush();
@@ -183,7 +158,6 @@ class MammothFactIT {
     @Test
     void testEntityFieldConstraints_descriptionNotNull() {
         assertThrows(PersistenceException.class, () -> {
-            em.getTransaction().begin();
             MammothFact fact = new MammothFact("Category", "Title", null);
             em.persist(fact);
             em.flush();
