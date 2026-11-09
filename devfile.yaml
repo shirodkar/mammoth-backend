@@ -96,29 +96,6 @@ components:
     volume:
       size: 2Gi
 
-services:
-  - name: mammoth-backend-postgresql
-    endpoints:
-      - name: postgresql
-        component: postgresql
-        endpoint: postgresql
-    ports:
-      - name: postgresql
-        containerPort: 5432
-    exposeAs:
-      internal: true
-
-  - name: mammoth-backend-eap
-    endpoints:
-      - name: eap-http
-        component: eap
-        endpoint: eap-http
-    ports:
-      - name: eap-http
-        containerPort: 8180
-    exposeAs:
-      public: true
-
 commands:
   - id: setup-ide
     exec:
