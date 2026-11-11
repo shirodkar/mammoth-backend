@@ -72,7 +72,7 @@ components:
       memoryRequest: 256Mi
       cpuLimit: 500m
       cpuRequest: 100m
-      mountSources: true
+      mountSources: false
       volumeMounts:
         - name: postgresql-data
           path: /var/lib/pgsql/data
