@@ -2,7 +2,7 @@ schemaVersion: 2.2.0
 metadata:
   name: mammoth-backend
   version: 1.0.0
-  description: Java EE 8 mammoth backend API with PostgreSQL backend
+  description: Quarkus mammoth backend API with PostgreSQL
 attributes:
   .vscode/settings.json: |
     {
@@ -22,6 +22,11 @@ components:
       volumeMounts:
         - name: m2
           path: /home/user/.m2
+      endpoints:
+        - name: quarkus-http
+          targetPort: 8080
+          exposure: public
+          protocol: http
       env:
         - name: JAVA_HOME
           value: /usr/lib/jvm/java-17-openjdk
@@ -39,31 +44,6 @@ components:
           value: 'true'
         - name: HUB_SOLUTION_SERVER_ENABLED
           value: 'true'
-
-  - name: eap
-    container:
-      image: registry.redhat.io/jboss-eap-8/eap81-openjdk21-builder-openshift-rhel9:latest
-      memoryLimit: 3Gi
-      memoryRequest: 1Gi
-      cpuLimit: '2'
-      cpuRequest: '1'
-      mountSources: true
-      sourceMapping: /projects
-      command: ['tail']
-      args: ['-f', '/dev/null']
-      endpoints:
-        - name: eap-http
-          targetPort: 8180
-          exposure: public
-          protocol: http
-        - name: eap-admin
-          targetPort: 10090
-          exposure: internal
-      env:
-        - name: MAMMOTH_API_URL
-          value: http://mammoth-backend-eap:8180/backend/api/mammoths
-        - name: JBOSS_NODE_NAME
-          value: mammoth2
 
   - name: postgresql
     container:
@@ -113,6 +93,13 @@ commands:
         echo '["/projects"]' > /checode/remote/data/User/globalStorage/ms-vscode/CodeTrust/trustedFolders.json;
         true
       label: 'Set up IDE'
+
+  - id: quarkus-dev
+    exec:
+      component: tools
+      commandLine: mvn quarkus:dev -Dquarkus.http.host=0.0.0.0
+      workingDir: ${PROJECT_SOURCE}
+      label: 'Start Quarkus dev mode'
 
 events:
   postStart:
